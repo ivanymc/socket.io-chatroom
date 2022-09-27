@@ -38,9 +38,11 @@ function App() {
 
   // Random id
   const genRandomAvatar = e => {
-    let randomIndexA = Math.floor( Math.random() * socket.id.length );
-    let randomIndexB = Math.floor( Math.random() * socket.id.length );
-    return socket.id.charAt(randomIndexA).toUpperCase() + socket.id.charAt(randomIndexB).toUpperCase();
+    if (socket.connected === true) {
+      let randomIndexA = Math.floor( Math.random() * socket.id.length );
+      let randomIndexB = Math.floor( Math.random() * socket.id.length );
+      return socket.id.charAt(randomIndexA).toUpperCase() + socket.id.charAt(randomIndexB).toUpperCase();
+    }
   };
 
   // Send message to Server
