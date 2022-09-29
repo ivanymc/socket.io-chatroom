@@ -14,7 +14,7 @@ import SendIcon from '@mui/icons-material/Send';
 
 // Connect to backend
 const SERVER_URL = process.env.REACT_APP_SERVER_URL;
-const socket = io.connect(SERVER_URL);
+const socket = io(SERVER_URL);
 
 // Create MUI Theme
 const darkTheme = createTheme({
