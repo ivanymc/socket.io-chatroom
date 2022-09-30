@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import io from 'socket.io-client';
-import { Avatar, Container, createTheme, CssBaseline, Divider, Grid, IconButton, InputBase, List, ListItem, Paper, ThemeProvider, Typography } from "@mui/material";
+import { Avatar, Box, CircularProgress, Container, createTheme, CssBaseline, Divider, Grid, IconButton, InputBase, List, ListItem, Paper, ThemeProvider, Typography } from "@mui/material";
 
 // Component
 // import InputField from "./component/InputField";
@@ -85,7 +85,9 @@ function App() {
 
   // Scroll to bottom
   useEffect( () => {
-    scrollToBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (!isLoading) {
+      scrollToBottomRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   })
 
   // Get from DB
@@ -95,29 +97,70 @@ function App() {
   return (
     <ThemeProvider theme={ darkTheme }>
       <Container maxWidth="sm" align="center" sx={{ mt: 4 }}>
-      
-        <Grid container spacing={2} sx={{ borderRadius: 3 }}>
-          <Grid item xs={12} sx={{ height: '80vh', overflow: 'hidden', overflowY : 'auto'}}> 
-            <List sx={{ ml: 2 }} className="upperInput"> 
-          
-              { msgs && msgs.map( (msg, index) => (
-                <ListItem key={ index } sx={{ mb: 1 }}>
-                  <Avatar sx={{ mr: 2, bgcolor: msg.senderColor }}>
-                    { msg.sender }
-                  </Avatar>
-                  
-                  <Typography variant="span"
-                    sx={{ 
-                      whiteSpace: "unset", 
-                      wordBreak: "break-all",
-                      border: '1px solid grey',
-                      padding: 2,
-                      borderRadius: 2,
-                      maxWidth: 360
-                    }}
-                  >
-                    { msg.message } 
-                  </Typography>
+
+        { isLoading && 
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', my: 5 }}>
+            <CircularProgress />
+          </Box>
+        }
+
+        { !isLoading &&       
+          <Grid container spacing={2} sx={{ borderRadius: 3 }}>
+            <Grid item xs={12} sx={{ height: '80vh', overflow: 'hidden', overflowY : 'auto'}}> 
+              <List sx={{ ml: 2 }} className="upperInput"> 
+            
+                { msgs && msgs.map( (msg, index) => (
+                  <ListItem key={ index } sx={{ mb: 1 }}>
+                    <Avatar sx={{ mr: 2, bgcolor: msg.senderColor }}>
+                      { msg.sender }
+                    </Avatar>
+                    
+                    <Typography variant="span"
+                      sx={{ 
+                        whiteSpace: "unset", 
+                        wordBreak: "break-all",
+                        border: '1px solid grey',
+                        padding: 2,
+                        borderRadius: 2,
+                        maxWidth: 360
+                      }}
+                    >
+                      { msg.message } 
+                    </Typography>
+
+                      <Typography variant="span"
+                        sx={{
+                          ml: 1,
+                          alignSelf: 'flex-end',
+                          fontSize: '0.5rem',
+                          lineHeight: 3,
+                          userSelect: 'none'
+                        }}
+                      >
+                      { msg.time }
+                    </Typography>
+                  </ListItem>
+                ))} 
+
+
+                { otherMsgs && otherMsgs.map( (msg, index) => (
+                  <ListItem key={ index } sx={{ mb: 1 }}>
+                    <Avatar sx={{ mr: 2, bgcolor: msg.senderColor }}>
+                      { msg.sender.slice(0, 2).toUpperCase() }
+                    </Avatar>
+                    
+                    <Typography variant="span"
+                      sx={{ 
+                        whiteSpace: "unset", 
+                        wordBreak: "break-all",
+                        border: '1px solid grey',
+                        padding: 2,
+                        borderRadius: 2,
+                        maxWidth: 360
+                      }}
+                    >
+                      { msg.message }
+                    </Typography>
 
                     <Typography variant="span"
                       sx={{
@@ -128,81 +171,48 @@ function App() {
                         userSelect: 'none'
                       }}
                     >
-                    { msg.time }
-                  </Typography>
-                </ListItem>
-              ))} 
+                      { msg.time }
+                    </Typography>
+                  </ListItem>
+                ))} 
 
+                <span ref={ scrollToBottomRef }> </span>  
 
-              { otherMsgs && otherMsgs.map( (msg, index) => (
-                <ListItem key={ index } sx={{ mb: 1 }}>
-                  <Avatar sx={{ mr: 2, bgcolor: msg.senderColor }}>
-                    { msg.sender.slice(0, 2).toUpperCase() }
-                  </Avatar>
-                  
-                  <Typography variant="span"
-                    sx={{ 
-                      whiteSpace: "unset", 
-                      wordBreak: "break-all",
-                      border: '1px solid grey',
-                      padding: 2,
-                      borderRadius: 2,
-                      maxWidth: 360
-                    }}
-                  >
-                    { msg.message }
-                  </Typography>
+              </List>
+            </Grid>
 
-                  <Typography variant="span"
-                    sx={{
-                      ml: 1,
-                      alignSelf: 'flex-end',
-                      fontSize: '0.5rem',
-                      lineHeight: 3,
-                      userSelect: 'none'
-                    }}
-                  >
-                    { msg.time }
-                  </Typography>
-                </ListItem>
-              ))} 
+            <Divider variant="middle" sx={{ my: 1, ml: 5, width: 500 }} />
 
-              <span ref={ scrollToBottomRef }> </span>  
+            <Grid item xs={12} sx={{ mb: 5 }}>
 
-            </List>
+              <Paper
+                component="form"
+                onSubmit={ sendMsg }
+                sx={{ p: '4px 8px', display: 'flex', alignItems: 'center', width: 500, height: 60, borderRadius: 5 }}
+              >
+                <InputBase
+                  ref={ inputRef }
+                  onChange={ e => inputRef.current.value = e.target.value} 
+                  required
+                  autoFocus
+                  placeholder="Type here..."
+                  inputProps={{ maxLength: 150,  }}
+                  sx={{ ml: 1, flex: 1 }} 
+                />
+
+                <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical"/>
+                
+                <IconButton
+                  type="submit"
+                  children={<SendIcon />}
+                  color="primary"
+                  sx={{ p: '10px' }}
+                />
+              </Paper>
+            </Grid>
+            
           </Grid>
-
-          <Divider variant="middle" sx={{ my: 1, ml: 5, width: 500 }} />
-
-          <Grid item xs={12} sx={{ mb: 5 }}>
-
-            <Paper
-              component="form"
-              onSubmit={ sendMsg }
-              sx={{ p: '4px 8px', display: 'flex', alignItems: 'center', width: 500, height: 60, borderRadius: 5 }}
-            >
-              <InputBase
-                ref={ inputRef }
-                onChange={ e => inputRef.current.value = e.target.value} 
-                required
-                autoFocus
-                placeholder="Type here..."
-                inputProps={{ maxLength: 150,  }}
-                sx={{ ml: 1, flex: 1 }} 
-              />
-
-              <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical"/>
-              
-              <IconButton
-                type="submit"
-                children={<SendIcon />}
-                color="primary"
-                sx={{ p: '10px' }}
-              />
-            </Paper>
-          </Grid>
-          
-        </Grid>
+        }
       </Container>
       <CssBaseline />
     </ThemeProvider>
